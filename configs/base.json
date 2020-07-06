@@ -3,7 +3,7 @@
     "packages-core": "base linux linux-headers linux-firmware intel-ucode grub archiso efibootmgr sudo lvm2 ntfs-3g os-prober lsb-release",
     "packages-devel": "base-devel python nodejs npm pacman-contrib python-pipenv perl cloc",
     "packages-desktop": "xorg picom pulseaudio pulseaudio-alsa i3-gaps sddm nemo pavucontrol dunst",
-    "packages-desktop-utils": "gedit firefox vlc kitty feh rofi nitrogen udiskie mupdf gimp keepassxc krita archlinux-wallpaper python-pywal scrot kwalletmanager filezilla", 
+    "packages-desktop-utils": "gedit firefox vlc kitty feh rofi nitrogen udiskie mupdf gimp keepassxc krita archlinux-wallpaper python-pywal scrot kwalletmanager filezilla",
     "packages-utils": "htop openssh git nano vi vim neovim screen tmux zip unzip p7zip unrar ncdu hexedit pandoc less lshw pdftk pamixer",
     "packages-network": "bind-tools nmap dhcpcd networkmanager syncthing networkmanager-openvpn openvpn network-manager-applet wget sshfs iftop iw nethogs",
     "packages-services": "docker redshift",
@@ -34,33 +34,33 @@
   },
   "users": {
     "meowxiik": {
-	    "setup": [
-      		"xdg-mime default firefox.desktop text/html",
-      		"xdg-mime default nemo.desktop inode/directory"
-	    ],
-        "environment": {
-            "PATH": "$PATH:/home/meowxiik/.local/bin",
-            "BROWSER": "firefox",
-            "EDITOR": "nvim",
-            "VISUAL": "nvim",
-            "GRAPHICSEDITOR": "gimp",
-            "SCREENSHOTEDITOR": "gimp",
-            "READER": "mupdf",
-            "EXPLORER": "nemo"
-        }
+      "setup": [
+        "xdg-mime default firefox.desktop text/html",
+        "xdg-mime default nemo.desktop inode/directory"
+      ],
+      "environment": {
+        "PATH": "$PATH:/home/meowxiik/.local/bin",
+        "BROWSER": "firefox",
+        "EDITOR": "nvim",
+        "VISUAL": "nvim",
+        "GRAPHICSEDITOR": "gimp",
+        "SCREENSHOTEDITOR": "gimp",
+        "READER": "mupdf",
+        "EXPLORER": "nemo"
+      }
     },
     "root": {
-	    "setup": [
-      		"echo laptop-core > /etc/hostname",
-      		"ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime",
-      		"hwclock --systohc",
-      		"sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/locale.gen",
-      		"locale-gen",
-      		"grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB"
-	    ],
-	    "environment": {
-          "HOME":"/home/meowxiik"
-        }
+      "setup": [
+        "echo laptop-core > /etc/hostname",
+        "ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime",
+        "hwclock --systohc",
+        "sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/locale.gen",
+        "locale-gen",
+        "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB"
+      ],
+      "environment": {
+        "HOME": "/home/meowxiik"
+      }
     }
   }
 }

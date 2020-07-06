@@ -116,7 +116,7 @@ def process_system_diff(cfg):
 
 def process_config_install(cfg):
     def systemd_service_enable(_, service):
-        call(f"systemd enable {service}")
+        call(f"systemctl enable {service}")
 
     def config_editor(file, commands):
         for command in commands:

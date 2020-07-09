@@ -141,15 +141,15 @@ def process_users_install(cfg):
         call(f"useradd -m {user}")
         call(f"sudo -u {user} mkdir -p {home[user]}/.config/environment")
 
-        [call(f"sudo -u touch {file}") for file in
+        [call(f"sudo -u {user} touch {file}") for file in
          [f"{home[user]}/.profile", f"{home[user]}/.config/environment/auto",
           f"{home[user]}/.config/environment/profile"]]
 
         dot_profile = [
                 "#!/bin/sh",
                 "",
-                "export XDG_CONFIG_HOME=\"$HOME/.config\"",
-                "export XDG_DATA_HOME=\"$HOME/.local/share\"",
+                "export XDG_CONFIG_HOME=${HOME}/.config",
+                "export XDG_DATA_HOME=${HOME}/.local/share",
                 "source ${XDG_CONFIG_HOME}/environment/auto",
                 "source ${XDG_CONFIG_HOME}/environment/profile"
             ]

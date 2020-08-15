@@ -19,7 +19,7 @@ cd "$HOME/.config/yaabs"
 
 cd "$HOME/.config/yaabs/$repo" || exit
 
-git pull -s resolve
+git pull --ff-only
 
 TARGET=
 

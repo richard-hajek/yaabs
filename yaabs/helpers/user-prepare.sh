@@ -31,4 +31,4 @@ mkdir -p $HOME/.local/share
 
 cd $HOME/.local/share/yaabs
 
-git pull
+git pull --ff-only

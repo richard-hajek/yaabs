@@ -35,16 +35,19 @@ case $MODE in
 		;;
 esac
 
+shopt -s nullglob
+
 for f in "$HOME/.config/yaabs/$repo/$PREFIX/"*; do
   echo Processing file $f
+  TARGETF="$TARGET/`basename $f`"
 
-  [[ -L "$TARGET/`basename $f`" ]] && continue
+  [[ -L "$TARGETF" ]] && continue
 
-  if [[ -d "$TARGET/`basename $f`" ]]; then
+  if [[ -d "$TARGETF" || -f "$TARGETF" ]]; then
     echo "==> COLLISION ON ${f}"
     mkdir -p "$HOME/collisions"
-    mv "$TARGET/`basename $f`" "$HOME/collisions"
+    mv "$TARGETF" "$HOME/collisions"
   fi
 
-  ln -s  "$f" "$TARGET/`basename $f`"
+  ln -s  "$f" "$TARGETF"
 done

@@ -7,8 +7,10 @@ if [[ "$USER" != "$TARGET_USER" ]]; then
   sudo -u "$TARGET_USER" "$0" "$TARGET_USER" "$URL"
 fi
 
-[ -d "$HOME/.config/yaabs" ] && git clone "$URL" "$HOME/.config/yaabs"
+[ ! -d "$HOME/.config/yaabs" ] && git clone "$URL" "$HOME/.config/yaabs"
+
 cd "$HOME/.config/yaabs" || exit
+
 git pull
 
 for f in "$HOME/.config/yaabs/"*; do
@@ -17,7 +19,8 @@ for f in "$HOME/.config/yaabs/"*; do
 
   if [[ -d "$HOME/.config/`basename $f`" ]]; then
     echo "==> COLLISION ON ${f}"
-    continue
+    mkdir "$HOME/collisions"
+    mv "$HOME/.config/`basename $f`" "$HOME/collisions"
   fi
 
   ln -s  "$f" "$HOME/.config/`basename $f`"

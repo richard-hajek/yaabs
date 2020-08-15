@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-import os
-import json
-import subprocess
-import shutil
 import argparse
-from collections import defaultdict
 import filecmp
-
+import json
+import os
+import shutil
+import subprocess
+import getpass
+from collections import defaultdict
 from sys import *
 
-PACMAN_CACHE = "/usr/cache/pacman/pkg"
+PACMAN_CACHE = "/var/cache/pacman/pkg"
 CACHE_ROOT = "/tmp/yaabs"
 DIFF_IGNORE = [".BUILDINFO", ".PKGINFO", ".MTREE"]
 
@@ -28,13 +28,24 @@ class ACTIONS:
     Diff = "diff"
 
 
-dry_run = True
+HELPERS_LOCATION = os.path.dirname(os.path.realpath(__file__)) + "/helpers/"
+HELPERS = {
+    "aur": HELPERS_LOCATION + "aur.sh",
+    "user-prepare": HELPERS_LOCATION + "user-prepare.sh",
+    "dotfiles": HELPERS_LOCATION + "dotfiles.sh"
+}
+
+dry_run = False
+verbose = False
 
 
-def c(command):
-    print(f"Running \"{command}\"")
+# region Utils
 
-    if dry_run:
+def c(command, force_run=False):
+    if verbose:
+        print(f"Running \"{command}\"")
+
+    if dry_run and not force_run:
         return 0
 
     return os.system(command)
@@ -68,6 +79,10 @@ def get_template_packages(cfg, aur=False):
     return packages
 
 
+# endregion
+
+# region Packages
+
 def process_package_sync(cfg):
     for field in cfg[SECTIONS.Packages]:
         c(f"pacman -S --needed --noconfirm {cfg[SECTIONS.Packages][field]}")
@@ -91,109 +106,130 @@ def process_package_diff(cfg):
     print(str.join(' ', end - template))
 
 
+# endregion
+
+# region System Configuration
+
+def systemd_service_enable(_, service, __):
+    c(f"systemctl enable {service}")
+
+
+def config_editor(file, commands, prefix):
+    for command in commands:
+        c(f"{command} {prefix}/{file}")
+
+
+CONFIG_SPECIAL_ACTIONS = {"service-enable": systemd_service_enable}
+CONFIG_PROCESSORS = defaultdict(lambda: config_editor, CONFIG_SPECIAL_ACTIONS)
+
+
 def cache_package(package):
-    c(f"mkdir -p {CACHE_ROOT}")
-    c(f"rm -rf {CACHE_ROOT}/*")
-    c(f"rm -rf {CACHE_ROOT}/.*")
-    c(f"tar xf {PACMAN_CACHE}/{package} --directory {CACHE_ROOT}")
+    c(f"mkdir -p {CACHE_ROOT}", force_run=True)
+    c(f"rm -rf {CACHE_ROOT}/* 2> /dev/null", force_run=True)
+    c(f"rm -rf {CACHE_ROOT}/.* 2> /dev/null", force_run=True)
+    c(f"tar xf {PACMAN_CACHE}/{package}-[0-9]* --directory {CACHE_ROOT}", force_run=True)
 
 
-def diff_package(package):
-    diffs = filecmp.dircmp(f"{CACHE_ROOT}", "/", ignore=DIFF_IGNORE)
+def apply_special_changes(package, cfg, root="/"):
+    for setting in cfg[SECTIONS.Configuration][package]:
+        if setting not in CONFIG_SPECIAL_ACTIONS:
+            continue
+        CONFIG_PROCESSORS[setting](setting, cfg[SECTIONS.Configuration][package][setting], root)
 
 
-def process_config_sync(cfg):
-    def systemd_service_enable(_, service):
-        c(f"systemctl enable {service}")
+def apply_changes(package, cfg, root="/"):
+    for setting in cfg[SECTIONS.Configuration][package]:
+        if setting in CONFIG_SPECIAL_ACTIONS:
+            continue
+        CONFIG_PROCESSORS[setting](setting, cfg[SECTIONS.Configuration][package][setting], root)
 
-    def config_editor(file, commands):
-        for command in commands:
-            c(f"{command} {file}")
 
-    config_processors = defaultdict(lambda: config_editor, {"service-enable": systemd_service_enable})
+def diff_cache():
+    df = []
+    for root, directories, filenames in os.walk(f'{CACHE_ROOT}/etc'):
+        original = root.replace(f"{CACHE_ROOT}", "")
+
+        if not os.path.isdir(original):
+            if verbose:
+                print(f"{original}: Dir missing")
+
+            continue
+
+        diffs = filecmp.dircmp(original, root, ignore=DIFF_IGNORE)
+
+        for f in diffs.diff_files:
+            df += [f"{original}/{f}"]
+
+    return df
+
+
+def process_config_sync(cfg, diff_mode=False):
+    if diff_mode:
+        print("==>Package differences:")
 
     for package in cfg[SECTIONS.Configuration]:
         cache_package(package)
-        for setting in cfg[SECTIONS.Configuration][package]:
-            config_processors[setting](setting, cfg[SECTIONS.Configuration][package][setting])
+        apply_changes(package, cfg, root=CACHE_ROOT)
+        susfiles = set(diff_cache())
+
+        if diff_mode:
+            if susfiles.__len__() > 0:
+                print(f"{package}: {' '.join(list(susfiles))} are different")
+            continue
+
+        susfiles |= set(cfg[SECTIONS.Configuration][package].keys()) - set(CONFIG_SPECIAL_ACTIONS.keys())
+
+        for f in susfiles:
+
+            if verbose:
+                print(f"Copying {CACHE_ROOT}/{f} to {f}")
+
+            if dry_run:
+                continue
+
+            shutil.copy(f"{CACHE_ROOT}/{f}", f"{f}")
+
+        apply_special_changes(package, cfg)
 
 
 def process_config_diff(cfg):
-    print("Not yet implemented")
+    process_config_sync(cfg, diff_mode=True)
 
-    print("==> Preparing template, please wait")
 
-    def chroot_install(root, packages, cfg):
-        if os.path.isdir(root): shutil.rmtree(root)
-        os.makedirs(f"{root}/var/cache/pacman")
-        os.symlink(f"/var/cache/pacman/pkg", f"{root}/var/cache/pacman/pkg2")
-        c(f"pacstrap {root} {str.join(' ', packages)} --cachedir={root}/var/cache/pacman/pkg2")
-
-    def chroot_diff(chroot, packages, cfg):
-
-        IGNORE = ["passwd", "shadow"]
-
-        print("===> SEARCHING FOR DIFFERENCES")
-        for root, directories, filenames in os.walk(f'{chroot}/etc'):
-            original = root.replace(f"{chroot}/etc/", "/etc/")
-            # print(f"Checking {original} vs {root}... ", end="")
-
-            if not os.path.isdir(original):
-                print(f"{original}: Dir missing")
-                continue
-
-            diffs = filecmp.dircmp(original, root, ignore=IGNORE)
-
-            if len(diffs.diff_files) != 0:
-                print(f"{original}: {diffs.diff_files}")
-
-    nonaur = get_templat2e_packages(cfg, False)
-    chroot_install("/var/cache/yaabs", nonaur, cfg)
-    chroot_diff("/var/cache/yaabs", nonaur, cfg)
-
+# endregion
 
 def process_users_sync(cfg):
     home = defaultdict(lambda: f"/home/{user}", {"root": "/root"})
 
     def prepare(user):
-        c(f"useradd -m {user}")
-        c(f"sudo -u {user} mkdir -p {home[user]}/.config/environment")
-
-        [c(f"sudo -u {user} touch {file}") for file in
-         [f"{home[user]}/.profile", f"{home[user]}/.config/environment/auto",
-          f"{home[user]}/.config/environment/profile"]]
-
-        dot_profile = [
-            "export XDG_CONFIG_HOME=${HOME}/.config",
-            "export XDG_DATA_HOME=${HOME}/.local/share",
-            "source ${XDG_CONFIG_HOME}/environment/auto",
-            "source ${XDG_CONFIG_HOME}/environment/profile"
-        ]
-
-        if dry_run:
-            print(f"{home[user]}/.profile would now be generated as {dot_profile}")
-            return
-        with open(f"{home[user]}/.profile", 'w') as f:
-            f.writelines(dot_profile)
+        c(HELPERS["user-prepare"] + f" {user}")
 
     def setup(user, _, commands):
         for command in commands:
             c(f"sudo -u {user} {command}")
 
     def environment(user, _, vars):
+        c(f"echo > {home[user]}/.config/auto/variables")
         for var in vars:
-            c(f"echo {var}=\"{vars[var]}\" >> {home[user]}/.config/environment/auto")
+            c(f"echo {var}=\"{vars[var]}\" >> {home[user]}/.config/auto/variables")
+
+    def dotfiles(user, _, url):
+        c(HELPERS["dotfiles"] + f" \"{user}\" \"{url}\"")
 
     def not_found(user, property, _):
         print(f"Invalid user property {property} in user {user}")
         exit(1)
 
-    setuppers = defaultdict(lambda: not_found, {"setup": setup, "environment": environment})
+    funcs = defaultdict(lambda: not_found, {"setup": setup, "environment": environment, "dotfiles": dotfiles})
 
     for user in cfg[SECTIONS.Users]:
+
+        if user != getpass.getuser() and getpass.getuser() != "root":
+            continue
+
         prepare(user)
         for property in cfg[SECTIONS.Users][user]:
-            setuppers[property](user, property, cfg[SECTIONS.Users][user][property])
+            funcs[property](user, property, cfg[SECTIONS.Users][user][property])
 
 
 def process_users_diff(cfg):
@@ -205,10 +241,10 @@ def process_aur_sync(cfg):
 
     def aur_installer(field, packages):
         c("useradd -m build")
-        c("cp ./aurhelper.sh /home/build")
+        c("cp ./aur.sh /home/build")
 
         for aur_package in str.split(packages, ' '):
-            code = c(f"sudo -u build /home/build/aurhelper.sh {aur_package}")
+            code = c(f"sudo -u build /home/build/aur.sh {aur_package}")
             return_responses[code]()
             code = c(f"pacman -U --needed --noconfirm /home/build/{aur_package}/*.pkg.tar.xz")
             return_responses[code]()
@@ -248,10 +284,12 @@ if __name__ == "__main__":
     parser.add_argument('action', type=str, choices=[ACTIONS.Sync, ACTIONS.Diff])
     parser.add_argument('configs', action='append', nargs='+')
     parser.add_argument('-d', '--dry', action='store_true', help='Dry run')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose')
     args = parser.parse_args()
     args.configs = args.configs[0]
 
     dry_run = args.dry
+    verbose = args.verbose
 
     config = read_config(args)
 

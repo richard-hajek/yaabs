@@ -1,16 +1,19 @@
 {
-  "system": {
-    "packages-prod": "sagemath genius blender valgrind etcher-bin gdb nvidia ghidra virtualbox virtualbox-host-modules-arch vagrant cloc discord",
+  "packages": {
+    "packages-prod": "sagemath genius blender valgrind  gdb nvidia ghidra virtualbox virtualbox-host-modules-arch vagrant cloc discord",
     "packages-prod-lang": "rustup",
-    "packages-java": "jdk10-openjdk jdk11-openjdk jdk8-openjdk jdk-openjdk jre10-openjdk jre10-openjdk-headless jre11-openjdk jre11-openjdk-headless jre8-openjdk jre8-openjdk-headless jre-openjdk jre-openjdk-headless",
-    "packages-login-manager": "ly numlockx",
-    "aur": "clion-gdb rider ly-git android-studio datagrip pycharm-professional intellij-idea-ultimate-edition webstorm-eap substance-designer godot-mono-bin clion mathematica",
+    "packages-java": " jdk11-openjdk jdk8-openjdk jdk-openjdk  jre11-openjdk jre11-openjdk-headless jre8-openjdk jre8-openjdk-headless jre-openjdk jre-openjdk-headless",
+    "packages-login-manager": "numlockx",
     "maybe": "shotcut"
   },
-  "packages": {
+  "aur": {
+    "packages-aur": "etcher-bin ly clion-gdb rider ly-git android-studio datagrip pycharm-professional intellij-idea-ultimate-edition webstorm-eap substance-designer godot-mono-bin clion mathematica",
+    "packages-java": "jdk10-openjdk jre10-openjdk jre10-openjdk-headless"
+  },
+  "configuration": {
     "nvidia": {
       "/etc/ly/config.ini": [
-        "echo x_cmd_setup = /etc/ly/nvidiafix.sh > /etc/ly/config.ini"
+        "echo x_cmd_setup = /etc/ly/nvidiafix.sh > "
       ],
       "extrafiles": {
         "/etc/ly/nvidiafix.sh": "#!/bin/sh\nxrandr --setprovideroutputsource modesetting NVIDIA-0\nxrandr --auto\nnumlockx on\n. /etc/ly/xsetup.sh"

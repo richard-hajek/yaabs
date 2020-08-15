@@ -1,5 +1,5 @@
 {
-  "system": {
+  "packages": {
     "packages-bootloader": "grub grub-theme-vimix",
     "packages-user-friendly": "plasma-meta"
   }

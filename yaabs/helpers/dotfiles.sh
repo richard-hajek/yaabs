@@ -36,6 +36,7 @@ case $MODE in
 esac
 
 shopt -s nullglob
+shopt -s dotglob
 
 for f in "$HOME/.config/yaabs/$repo/$PREFIX/"*; do
   echo Processing file $f

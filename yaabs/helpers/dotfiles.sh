@@ -1,27 +1,50 @@
 #!/usr/bin/env bash
 
-TARGET_USER=$1
-URL=$2
+MODE=$1
+TARGET_USER=$2
+UPSTREAM=$3
+PREFIX=$4
 
 if [[ "$USER" != "$TARGET_USER" ]]; then
-  sudo -u "$TARGET_USER" "$0" "$TARGET_USER" "$URL"
+  sudo -u "$TARGET_USER" "$0" "$@"
 fi
 
-[ ! -d "$HOME/.config/yaabs" ] && git clone "$URL" "$HOME/.config/yaabs"
+repo=`basename $UPSTREAM .git`
 
-cd "$HOME/.config/yaabs" || exit
+[ ! -d "$HOME/.config/yaabs" ] && mkdir -p "$HOME/.config/yaabs"
+
+cd "$HOME/.config/yaabs"
+
+[ ! -d "$HOME/.config/yaabs/$repo" ] && git clone $UPSTREAM
+
+cd "$HOME/.config/yaabs/$repo" || exit
 
 git pull -s resolve
 
-for f in "$HOME/.config/yaabs/"*; do
+TARGET=
 
-  [[ -L "$HOME/.config/`basename $f`" ]] && continue
+case $MODE in
+	"dotfiles")
+		TARGET="$HOME/.config"
+		;;
+	"scripts")
+		TARGET="$HOME/.local/bin"
+		;;
+	"home")
+		TARGET="$HOME"
+		;;
+esac
 
-  if [[ -d "$HOME/.config/`basename $f`" ]]; then
+for f in "$HOME/.config/yaabs/$repo/$PREFIX/"*; do
+  echo Processing file $f
+
+  [[ -L "$TARGET/`basename $f`" ]] && continue
+
+  if [[ -d "$TARGET/`basename $f`" ]]; then
     echo "==> COLLISION ON ${f}"
-    mkdir "$HOME/collisions"
-    mv "$HOME/.config/`basename $f`" "$HOME/collisions"
+    mkdir -p "$HOME/collisions"
+    mv "$TARGET/`basename $f`" "$HOME/collisions"
   fi
 
-  ln -s  "$f" "$HOME/.config/`basename $f`"
+  ln -s  "$f" "$TARGET/`basename $f`"
 done

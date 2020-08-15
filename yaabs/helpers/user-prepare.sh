@@ -28,3 +28,7 @@ mkdir -p $HOME/.local/bin
 mkdir -p $HOME/.local/share
 
 [ ! -d $HOME/.local/share/yaabs ] && git clone https://github.com/richard-hajek/yaabs $HOME/.local/share/yaabs
+
+cd $HOME/.local/share/yaabs
+
+git pull

@@ -213,14 +213,20 @@ def process_users_sync(cfg):
         for var in vars:
             c(f"echo export {var}=\'{vars[var]}\' >> {home[user]}/.config/env")
 
-    def dotfiles(user, _, url):
-        c(HELPERS["dotfiles"] + f" \"{user}\" \"{url}\"")
+    def dotfiles(user, _, values):
+        c(HELPERS["dotfiles"] + f" dotfiles \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\"")
+    
+    def scripts(user, _, values):
+        c(HELPERS["dotfiles"] + f" scripts \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\"")
+    
+    def homef(user, _, values):
+        c(HELPERS["dotfiles"] + f" home \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\"")
 
     def not_found(user, property, _):
         print(f"Invalid user property {property} in user {user}")
         exit(1)
 
-    funcs = defaultdict(lambda: not_found, {"setup": setup, "environment": environment, "dotfiles": dotfiles})
+    funcs = defaultdict(lambda: not_found, {"setup": setup, "environment": environment, "dotfiles": dotfiles, "scripts": scripts, "home": homef})
 
     for user in cfg[SECTIONS.Users]:
 

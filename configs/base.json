@@ -50,7 +50,18 @@
         "READER": "mupdf",
         "EXPLORER": "nemo"
       },
-      "dotfiles": "git@github.com:richard-hajek/dotfiles.git"
+      "dotfiles": { 
+	      "upstream": "git@github.com:richard-hajek/dotfiles.git",
+	      "prefix": "dotfiles"
+      },
+      "scripts": {
+	      "upstream": "git@github.com:richard-hajek/dotfiles.git",
+	      "prefix": "scripts"
+      },
+      "home": {
+	      "upstream": "git@github.com:richard-hajek/dotfiles.git",
+	      "prefix": "home"
+      }
     },
     "root": {
       "setup": [

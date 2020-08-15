@@ -11,7 +11,7 @@ fi
 
 cd "$HOME/.config/yaabs" || exit
 
-git pull
+git pull -s resolve
 
 for f in "$HOME/.config/yaabs/"*; do
 

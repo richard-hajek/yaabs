@@ -6,11 +6,21 @@ if [[ "$USER" != "$TARGET_USER" ]]; then
   sudo -u "$TARGET_USER" "$0" "$TARGET_USER" "$URL"
 fi
 
-cat << EOF >> $HOME/.profile
+cat << EOF > $HOME/.profile
+#!/usr/bin/env bash
+
 export XDG_CONFIG_HOME=${HOME}/.config
 export XDG_DATA_HOME=${HOME}/.local/share
-source ${XDG_CONFIG_HOME}/auto/variables
-source ${XDG_CONFIG_HOME}/environment/profile
+source ${XDG_CONFIG_HOME}/env
+source ${XDG_CONFIG_HOME}/shells/profile
+EOF
+
+cat << EOF > $HOME/.bashrc
+[ -f "\${BASHRC}" ] && . "\${BASHRC}"
+EOF
+
+cat << EOF > $HOME/.zshenv
+ZDOTDIR=\$HOME/.config/shells
 EOF
 
 mkdir -p $HOME/.config/auto

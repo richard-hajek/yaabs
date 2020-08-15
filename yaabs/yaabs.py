@@ -209,9 +209,9 @@ def process_users_sync(cfg):
             c(f"sudo -u {user} {command}")
 
     def environment(user, _, vars):
-        c(f"echo > {home[user]}/.config/auto/variables")
+        c(f"echo > {home[user]}/.config/env")
         for var in vars:
-            c(f"echo {var}=\"{vars[var]}\" >> {home[user]}/.config/auto/variables")
+            c(f"echo export {var}=\'{vars[var]}\' >> {home[user]}/.config/env")
 
     def dotfiles(user, _, url):
         c(HELPERS["dotfiles"] + f" \"{user}\" \"{url}\"")

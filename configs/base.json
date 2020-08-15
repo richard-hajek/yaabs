@@ -41,6 +41,7 @@
       ],
       "environment": {
         "PATH": "$PATH:/home/meowxiik/.local/bin",
+        "TERMINAL": "kitty",
         "BROWSER": "firefox",
         "EDITOR": "nvim",
         "VISUAL": "nvim",

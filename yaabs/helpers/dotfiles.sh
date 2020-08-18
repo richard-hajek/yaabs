@@ -45,9 +45,17 @@ for f in "$HOME/.config/yaabs/$repo/$PREFIX/"*; do
   [[ -L "$TARGETF" ]] && continue
 
   if [[ -d "$TARGETF" || -f "$TARGETF" ]]; then
-    echo "==> COLLISION ON ${f}"
+    echo -n "==> COLLISION ON ${f} "
     mkdir -p "$HOME/collisions"
-    mv "$TARGETF" "$HOME/collisions"
+    POSTIFX=1
+
+    while [[ -f "$HOME/collisions/${TARGETF}${POSTFIX}" ]]; do
+    	(( POSTFIX ++ ))
+    done
+
+    echo "Archiving as $HOME/collisions/${TARGETF}${POSTFIX}"
+
+    mv "$TARGETF" "$HOME/collisions/${TARGETF}${POSTFIX}"
   fi
 
   ln -s  "$f" "$TARGETF"

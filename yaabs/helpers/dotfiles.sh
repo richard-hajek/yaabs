@@ -41,21 +41,22 @@ shopt -s dotglob
 for f in "$HOME/.config/yaabs/$repo/$PREFIX/"*; do
   echo Processing file $f
   TARGETF="$TARGET/`basename $f`"
+  BASEF="`basename $f`"
 
   [[ -L "$TARGETF" ]] && continue
 
   if [[ -d "$TARGETF" || -f "$TARGETF" ]]; then
     echo -n "==> COLLISION ON ${f} "
     mkdir -p "$HOME/collisions"
-    POSTIFX=1
+    POSTFIX=1
 
-    while [[ -f "$HOME/collisions/${TARGETF}${POSTFIX}" ]]; do
+    while [[ -f "$HOME/collisions/${BASEF}${POSTFIX}" ]]; do
     	(( POSTFIX ++ ))
     done
 
-    echo "Archiving as $HOME/collisions/${TARGETF}${POSTFIX}"
+    echo "Archiving as $HOME/collisions/${BASEF}${POSTFIX}"
 
-    mv "$TARGETF" "$HOME/collisions/${TARGETF}${POSTFIX}"
+    mv "$TARGETF" "$HOME/collisions/${BASEF}${POSTFIX}"
   fi
 
   ln -s  "$f" "$TARGETF"

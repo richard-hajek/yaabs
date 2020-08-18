@@ -14,4 +14,4 @@ mkdir -p $HOME/.local/share
 
 cd $HOME/.local/share/yaabs
 
-git pull --ff-only
+git pull --rebase

@@ -223,15 +223,18 @@ def process_users_sync(cfg):
     def homef(user, _, values):
         c(HELPERS["dotfiles"] + f" home \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\"")
 
+    def defaultf(_, __, ___):
+        pass
+
     def not_found(user, property, _):
         print(f"Invalid user property {property} in user {user}")
         exit(1)
 
-    funcs = defaultdict(lambda: not_found, {"setup": setup, "environment": environment, "dotfiles": dotfiles, "scripts": scripts, "home": homef})
+    funcs = defaultdict(lambda: not_found, {"setup": setup, "environment": environment, "dotfiles": dotfiles, "scripts": scripts, "home": homef, "default": defaultf})
 
     for user in cfg[SECTIONS.Users]:
 
-        if user != getpass.getuser() and getpass.getuser() != "root":
+        if user != getpass.getuser() and getpass.getuser() != "root" and not cfg[SECTIONS.Users]["default"]:
             continue
 
         prepare(user)

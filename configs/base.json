@@ -40,7 +40,7 @@
         "xdg-mime default nemo.desktop inode/directory"
       ],
       "environment": {
-        "PATH": "$PATH:/home/meowxiik/.local/bin",
+        "PATH": "$PATH:/home/$USER/.local/bin",
         "TERMINAL": "kitty",
         "BROWSER": "firefox",
         "EDITOR": "nvim",
@@ -61,7 +61,8 @@
       "home": {
 	      "upstream": "git@github.com:richard-hajek/dotfiles.git",
 	      "prefix": "home"
-      }
+      },
+      "default": true
     },
     "root": {
       "setup": [

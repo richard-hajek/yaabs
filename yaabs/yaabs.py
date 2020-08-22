@@ -80,16 +80,22 @@ def get_template_packages(cfg, aur=False):
     return packages
 
 
+# git@github.com:    richard-hajek/yaabs.git
+# https://github.com/richard-hajek/yaabs.git
+def ssh_to_https(url: str):
+    return url.replace('git@github.com:', 'https://github.com/')
+
 # endregion
 
 # region Packages
 
-def process_package_sync(cfg):
+
+def process_package_sync(cfg: dict):
     for field in cfg[SECTIONS.Packages]:
         c(f"pacman -S --needed --noconfirm {cfg[SECTIONS.Packages][field]}")
 
 
-def process_package_diff(cfg):
+def process_package_diff(cfg: dict):
     get_installed_packages = lambda: set(str.split(subprocess.check_output(['pacman', '-Qqn']).decode('utf-8'), '\n'))
     get_end_packages = lambda: set(str.split(subprocess.check_output(['pacman', '-Qqetn']).decode('utf-8'), '\n'))
 
@@ -215,6 +221,7 @@ def process_users_sync(cfg):
             c(f"echo export {var}=\'{vars[var]}\' >> {home[user]}/.config/env")
 
     def dotfiles(user, _, values):
+        values['upstream'] = ssh_to_https(values['upstream']) # this is stupid but.... will work for downstream
         c(HELPERS["dotfiles"] + f" dotfiles \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\"")
     
     def scripts(user, _, values):

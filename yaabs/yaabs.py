@@ -233,8 +233,13 @@ def process_users_sync(cfg):
     funcs = defaultdict(lambda: not_found, {"setup": setup, "environment": environment, "dotfiles": dotfiles, "scripts": scripts, "home": homef, "default": defaultf})
 
     for user in cfg[SECTIONS.Users]:
+        if cfg[SECTIONS.Users][user].get("default"):
+            cfg[SECTIONS.Users][getpass.getuser()] = cfg[SECTIONS.Users][user]
+            break
 
-        if user != getpass.getuser() and getpass.getuser() != "root" and not cfg[SECTIONS.Users].get("default"):
+    for user in cfg[SECTIONS.Users]:
+
+        if user != getpass.getuser() and getpass.getuser() != "root":
             continue
 
         prepare(user)

@@ -234,7 +234,7 @@ def process_users_sync(cfg):
 
     for user in cfg[SECTIONS.Users]:
 
-        if user != getpass.getuser() and getpass.getuser() != "root" and not cfg[SECTIONS.Users]["default"]:
+        if user != getpass.getuser() and getpass.getuser() != "root" and not cfg[SECTIONS.Users].get("default"):
             continue
 
         prepare(user)

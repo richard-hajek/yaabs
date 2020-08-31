@@ -222,13 +222,13 @@ def process_users_sync(cfg):
 
     def dotfiles(user, _, values):
         values['upstream'] = ssh_to_https(values['upstream']) # this is stupid but.... will work for downstream
-        c(HELPERS["dotfiles"] + f" dotfiles \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\"")
+        c(HELPERS["dotfiles"] + f" dotfiles \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\" \"{verbose}\"")
     
     def scripts(user, _, values):
-        c(HELPERS["dotfiles"] + f" scripts \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\"")
+        c(HELPERS["dotfiles"] + f" scripts \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\" \"{verbose}\"")
     
     def homef(user, _, values):
-        c(HELPERS["dotfiles"] + f" home \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\"")
+        c(HELPERS["dotfiles"] + f" home \"{user}\" \"{values['upstream']}\" \"{values['prefix']}\" \"{verbose}\"")
 
     def defaultf(_, __, ___):
         pass

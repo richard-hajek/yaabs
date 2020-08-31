@@ -4,6 +4,7 @@ MODE=$1
 TARGET_USER=$2
 UPSTREAM=$3
 PREFIX=$4
+VERBOSE=$5
 
 if [[ "$USER" != "$TARGET_USER" ]]; then
   sudo -u "$TARGET_USER" "$0" "$@"
@@ -38,15 +39,23 @@ esac
 shopt -s nullglob
 shopt -s dotglob
 
+COLLISIONS=0
+PROCESSED=0
+
 for f in "$HOME/.config/yaabs/$repo/$PREFIX/"*; do
-  echo Processing file $f
+
+  (( PROCESSED++ ))
+
+  [ "$VERBOSE" == "True" ] && echo Processing file $f
+
   TARGETF="$TARGET/`basename $f`"
   BASEF="`basename $f`"
 
   [[ -L "$TARGETF" ]] && continue
 
   if [[ -d "$TARGETF" || -f "$TARGETF" ]]; then
-    echo -n "==> COLLISION ON ${f} "
+    (( COLLISIONS++ ))
+    [ "$VERBOSE" == "True" ] && echo -n "==> COLLISION ON ${f} "
     mkdir -p "$HOME/collisions"
     POSTFIX=1
 
@@ -54,10 +63,16 @@ for f in "$HOME/.config/yaabs/$repo/$PREFIX/"*; do
     	(( POSTFIX ++ ))
     done
 
-    echo "Archiving as $HOME/collisions/${BASEF}${POSTFIX}"
+    [ "$VERBOSE" == "True" ] && echo "Archiving as $HOME/collisions/${BASEF}${POSTFIX}"
 
     mv "$TARGETF" "$HOME/collisions/${BASEF}${POSTFIX}"
   fi
 
   ln -s  "$f" "$TARGETF"
 done
+
+if [[ $COLLISIONS != 0 ]] ; then
+  echo "[YAABS] Encountered ${COLLISIONS} collisions"
+fi
+
+echo "[YAABS] Processed $PROCESSED files"

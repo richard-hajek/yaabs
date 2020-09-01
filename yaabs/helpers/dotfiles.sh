@@ -76,3 +76,6 @@ if [[ $COLLISIONS != 0 ]] ; then
 fi
 
 echo "[YAABS] Processed $PROCESSED files"
+
+find -L "${HOME}" -name . -o -type d -prune -o -type l -exec rm {} +
+find -L "${HOME}/.config" -name . -o -type d -prune -o -type l -exec rm {} +
